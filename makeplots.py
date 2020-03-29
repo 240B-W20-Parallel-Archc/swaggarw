@@ -1,86 +1,108 @@
-#!/usr/bin/env python2.7
-import re
-
-import numpy as py
+import csv
+import numpy as np
+import pylab
 import matplotlib
-matplotlib.use('pdf')
-# from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib import ticker
 import matplotlib.pyplot as plt
+cols = ['b', 'g', 'r', 'c', 'm']
 
-#
-# plotOneSeries
-#
-def plotOneSet(rawData, sName, col='r'):
-    sz = []
-    lat = []
-    for l in rawData:
-        m = re.search('size:\s+(\d+)\s*K?\s+latency:\s+(\d+\.\d+)\sns', l)
-        if (m):
-            csz = int(m.group(1))
-            if re.search('\d+\s+K\s+latency', l):
-                csz = 1024 * csz
-            sz.append(csz)
-            lat.append(float(m.group(2)))
+def doPlot():
+	for i in ['rand_rd_', 'rand_rmw_', 'seq_rd_', 'seq_rmw_']:    
+		with open('csvData/cachetime_' + i + '1t.csv', newline='') as f:
+			reader = csv.reader(f)
+			data = np.array(list(reader))
+			
+		with open('csvData/cachetime_' + i + '2t.csv', newline='') as f:
+			reader = csv.reader(f)
+			data1 = np.array(list(reader))
+			
+		with open('csvData/cachetime_' + i + '4t.csv', newline='') as f:
+			reader = csv.reader(f)
+			data2 = np.array(list(reader))
+			
+		with open('csvData/cachetime_' + i + '8t.csv', newline='') as f:
+			reader = csv.reader(f)
+			data3 = np.array(list(reader))
+			
+		with open('csvData/cachetime_' + i + '16t.csv', newline='') as f:
+			reader = csv.reader(f)
+			data4 = np.array(list(reader))
+			
+		a = data[1:, 0].astype(int)
+		b = data[1:, 1].astype(float)
+		b1 = data1[1:, 1].astype(float)
+		b2 = data2[1:, 1].astype(float)
+		b3 = data3[1:, 1].astype(float)
+		b4 = data4[1:, 1].astype(float)
+		
+		fig, ax = plt.subplots(figsize=(20, 10), dpi=144, facecolor='w', edgecolor='b')
+		
+		if 'rand' in i:
+			ax.set_xlim(2**5, 2**26)
+			ax.set_ylim(0, 80)
+			ax.set_xscale('log', basex=2)
+			ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, numticks=22))
+			ax.set_xlabel(r'Memory size (Bytes)$\rightarrow$', fontsize='x-large')
+		else:
+			ax.set_xlim(0, 1088)
+			ax.set_ylim(0, 50)
+			ax.set_xticks(list(np.arange(18)*64))
+			ax.set_xlabel(r'Memory stride (Bytes)$\rightarrow$', fontsize='x-large')
 
-    plt.plot(sz, lat, label=sName, marker='o', linestyle='dashed', c=col)
-    plt.legend(loc='upper left')
-#    plot.show()
-    
+		ax.set_ylabel(r'Latency (ns) $\rightarrow$', fontsize='x-large')
+		ax.grid(True)
+		ax.plot(a, b, label='1 thread', marker='o', linestyle='dashed', c=cols[0])
+		
+		ax.legend(loc='upper left')
+		
+		if i == 'rand_rd_':
+			ax.set_title('Read Performance for Random Access', fontsize='xx-large')
+		elif i == 'rand_rmw_':
+			ax.set_title('Read-Modify-Write Performance for Random Access', fontsize='xx-large')
+		elif i == 'seq_rd_':
+			ax.set_title('Read Performance for Sequential Access', fontsize='xx-large')
+		else:
+			ax.set_title('Read-Modify-Write Performance for Sequential Access', fontsize='xx-large')
+			
+		fig.savefig('plots/cachetime_' + i + '1t')
+		
+		
+		
+		
+		
+		# Now plot Multithreaded Data
+		
+		fig, ax = plt.subplots(figsize=(20, 10), dpi=144, facecolor='w', edgecolor='b')
+		
+		if 'rand' in i:
+			ax.set_xlim(2**5, 2**26)
+			ax.set_xscale('log', basex=2)
+			ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, numticks=22))
+			ax.set_xlabel(r'Memory size (Bytes)$\rightarrow$', fontsize='x-large')
+		else:
+			ax.set_xlim(0, 1088)
+			ax.set_xticks(list(np.arange(18)*64))
+			ax.set_xlabel(r'Memory stride (Bytes)$\rightarrow$', fontsize='x-large')
 
-#
-# finalizePlot
-def finalizePlot(plotfilename):
-    plt.xscale('log')
-    plt.savefig(plotfilename+".pdf")
-
-#
-# def doPlot
-#   rawData is the output of the cachetime  program
-def doPlot(rawData, plotfilename):
-    plotOneSet(rawData, plotfilename)
-    finalizePlot(plotfilename)
-    sz = []
-    lat = []
-    for l in rawData:
-        m = re.search('size:\s+(\d+)\s*K?\s+latency:\s+(\d+\.\d+)\sns', l)
-        if (m):
-            csz = int(m.group(1))
-            if re.search('\d+\s+K\s+latency', l):
-                csz = 1024 * csz
-            sz.append(csz)
-            lat.append(float(m.group(2)))
-
-    print sz
-    print lat
-    for x,y in zip(sz, lat):
-        print("{:d}, {:f}".format(x,y))
-
-
-    plt.plot(sz, lat)
-    plt.xscale('log')
-#     pp = PdfPages('multipage.pdf')
-#    plt.savefig(pp, format='pdf')
-#    pp.close()
-    plt.savefig(plotfilename)
-#    plot.show()
-
-#
-#
-if __name__ == "__main__":
-    import sys
-    fp = ""
-
-    cols = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
-    colIdx = 0
-    for fname in sys.argv[1:]:
-        try:
-            fp = open(fname, "r")
-        except:
-            print("Error: Could not open file {:s}".format(fname))
-            exit(-1)
-
-
-        plotOneSet(fp.readlines(), fname, cols[colIdx])
-        colIdx = colIdx + 1
-
-    finalizePlot("_".join(sys.argv[1:]))
+		ax.set_ylabel(r'Latency (ns) $\rightarrow$', fontsize='x-large')
+		ax.grid(True)
+		ax.plot(a, b, label='1 thread', marker='o', linestyle='dashed', c=cols[0])
+		ax.plot(a, b1, label='2 threads', marker='D', linestyle='dashed', c=cols[1])
+		ax.plot(a, b2, label='4 threads', marker='x', linestyle='dashed', c=cols[2])
+		ax.plot(a, b3, label='8 threads', marker='s', linestyle='dashed', c=cols[3])
+		ax.plot(a, b4, label='16 threads', marker= '^', linestyle='dashed', c=cols[4])
+		
+		ax.legend(loc='upper left')
+		
+		if i == 'rand_rd_':
+			ax.set_title('Read Performance for Random Access', fontsize='xx-large')
+		elif i == 'rand_rmw_':
+			ax.set_title('Read-Modify-Write Performance for Random Access', fontsize='xx-large')
+		elif i == 'seq_rd_':
+			ax.set_title('Read Performance for Sequential Access', fontsize='xx-large')
+		else:
+			ax.set_title('Read-Modify-Write Performance for Sequential Access', fontsize='xx-large')
+			
+		fig.savefig('plots/cachetime_' + i + 'mt')
+		
+	return 'Plot generated in path \'plots/\''

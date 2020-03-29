@@ -1,0 +1,35 @@
+Requirements:
+- Python3.6 or above
+	-- matplotlib
+	-- numpy
+- C++ Standard: 2011
+- OpenMP
+
+********************************************************************
+
+To generate all results, run the script 'runs.sh':
+
+$ ./runs.sh
+
+To plot all the output results, run the 'cachetime.py' as follows:
+
+$ python3 cachetime.py -p
+
+********************************************************************
+
+INSTRUCTIONS:
+
+The following instructions describe each file:
+- cachetime.cpp: main c++ code file for cache performance
+- cachetime.out: compiled cachetime.cpp
+- cachetime.py: Python driver script which runs the cachetime.out, generates results, stores them in 'csvData' folder and generates plots in 'plots' folder.
+- cpu_conf.jpg: screenshot of cpu configuration
+- doit.sh: runs the cache performance code for random access for read and read-modify-write operations for 1, 2, 4, 8 and 16 threads.
+- lscpu.jpg: output of lscpu on system
+- Makefile: makefile with 'make' and 'make clean'options
+- makeplots.py: plotting script which is imported by cachetime.py
+- print_lscpu.sh: Shell script which prints the cache configuration of the CPU
+- runs.sh: Shell script which deletes and recompiles the 'cachetime.out' executable and generates and prints all results for sequential and strided access.
+- SwapnilAggarwal_project.pdf: Project Repor PDF
+
+
