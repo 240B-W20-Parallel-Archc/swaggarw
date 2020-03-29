@@ -115,7 +115,6 @@ double chasePointer(void** bufferMem, size_t iter) {
 		}
 	} else {
 		for(int i = 0; i < iter; i++) {
-			// cout << "In loop " << i << endl;
 			// Only Read Next Pointer
 			buffPtr = (void**) *buffPtr;
 		}
